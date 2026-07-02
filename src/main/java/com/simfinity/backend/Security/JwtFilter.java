@@ -42,6 +42,11 @@ public class JwtFilter extends OncePerRequestFilter {
                                     null,
                                     jwtUtil.getAuthorities(role)
                             );
+                    System.out.println("Auth header: " + authHeader);
+                    System.out.println("Decoded username: " + username);
+                    System.out.println("Decoded role: " + role);
+                    System.out.println("Authorities: " + jwtUtil.getAuthorities(role));
+
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
