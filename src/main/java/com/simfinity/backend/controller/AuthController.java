@@ -25,57 +25,40 @@ public class AuthController {
         this.jwtUtil = jwtUtil;
     }
 
-    // ✅ Signup
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
-        try {
-            if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username already exists!");
-            }
-
-            User user = new User();
-            user.setUsername(request.getUsername());
-            user.setEmail(request.getEmail());
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
-            user.setRole("USER");
-
-            userRepository.save(user);
-            System.out.println("User registered: " + user.getUsername());
-            return ResponseEntity.ok("User registered successfully!");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Signup failed: " + e.getMessage());
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username already exists!");
         }
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already exists!");
+        }
+
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword())); // ✅ encode
+        user.setRole("USER");
+
+        userRepository.save(user);
+        return ResponseEntity.ok("User registered successfully!");
     }
 
-    // ✅ Login
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        try {
-            System.out.println("Login attempt for user: " + request.getUsername());
-
-            User user = userRepository.findByUsername(request.getUsername()).orElse(null);
-            if (user == null) {
-                System.out.println("User not found: " + request.getUsername());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
-            }
-
-            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-                System.out.println("Invalid password for user: " + request.getUsername());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-            }
-
-            String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
-            System.out.println("Generated JWT for " + user.getUsername() + ": " + token);
-
-            return ResponseEntity.ok(new TokenResponse(token));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Login failed: " + e.getMessage());
+        User user = userRepository.findByUsername(request.getUsername()).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
         }
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+        }
+
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
+        return ResponseEntity.ok(new TokenResponse(token));
     }
 
-    // DTOs
     @Data
     static class SignupRequest {
         private String username;
