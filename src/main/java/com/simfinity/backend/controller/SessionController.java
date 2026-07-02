@@ -1,4 +1,4 @@
-package com.simfinity.backend.Controller;
+package com.simfinity.backend.controller;
 
 import com.simfinity.backend.Model.Session;
 import com.simfinity.backend.Repository.SessionRepository;

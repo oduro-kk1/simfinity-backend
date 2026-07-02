@@ -1,4 +1,4 @@
-package com.simfinity.backend.Controller;
+package com.simfinity.backend.controller;
 
 import com.simfinity.backend.Services.ContainerService;
 import org.springframework.web.bind.annotation.*;

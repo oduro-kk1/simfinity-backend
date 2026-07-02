@@ -1,10 +1,9 @@
-package com.simfinity.backend.Controller;
+package com.simfinity.backend.controller;
 
 import com.simfinity.backend.Repository.PaymentRepository;
 import com.simfinity.backend.Services.PaystackService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.userdetails.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
