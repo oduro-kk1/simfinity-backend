@@ -3,50 +3,70 @@ package com.simfinity.backend.Security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 
 @Component
 public class JwtUtil {
 
-    private final String SECRET_KEY = "supersecretkey";
-    private final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24 hours
+    // 🔑 Your actual secret string — must match everywhere
+    private final String SECRET_KEY = "mysupersecret123!@#";
 
-    // ✅ Generate token with username + role
+    // Token validity: 1 hour
+    private final long EXPIRATION_TIME = 1000 * 60 * 60;
+
+    // Generate a JWT for a given username + role
     public String generateToken(String username, String role) {
         return Jwts.builder()
                 .setSubject(username)
                 .claim("role", role)
-                .setIssuedAt(new Date())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
     }
 
-    // ✅ Extract username
+    // Extract username (subject)
     public String extractUsername(String token) {
-        return extractAllClaims(token).getSubject();
+        return extractClaim(token, Claims::getSubject);
     }
 
-    // ✅ Extract role
+    // Extract role claim
     public String extractRole(String token) {
-        return (String) extractAllClaims(token).get("role");
+        return extractAllClaims(token).get("role", String.class);
     }
 
-    // ✅ Convert role → authorities
+    // Authorities builder (Spring expects ROLE_ prefix)
     public List<SimpleGrantedAuthority> getAuthorities(String role) {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role));
     }
 
-    // ✅ Check expiration
-    public boolean isTokenExpired(String token) {
-        return extractAllClaims(token).getExpiration().before(new Date());
+    // Validate token
+    public boolean validateToken(String token, String username) {
+        final String extractedUsername = extractUsername(token);
+        return (extractedUsername.equals(username) && !isTokenExpired(token));
     }
 
-    // ✅ Parse claims
+    // Check expiry
+    private boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    // Generic claim extractor
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .setSigningKey(SECRET_KEY)
