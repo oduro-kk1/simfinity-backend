@@ -27,9 +27,11 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()   // 🚨 everything is open
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/hello").permitAll()
+                        .anyRequest().permitAll()   // 🚨 for now, open everything
                 );
-
         return http.build();
     }
+
 }
