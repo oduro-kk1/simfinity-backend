@@ -24,12 +24,9 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Open endpoints
                         .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/hello").permitAll()
-                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
-                // Add JWT filter before UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -37,7 +34,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // BCrypt is the standard for Spring Security
+        // BCrypt is the standard encoder for Spring Security
         return new BCryptPasswordEncoder();
     }
 
